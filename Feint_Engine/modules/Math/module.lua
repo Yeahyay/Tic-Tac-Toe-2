@@ -34,7 +34,7 @@ function extendedMath:load()
 	end
 
 	function self.clamp(x, min, max)
-		return math.max(math.min(min, x), max)
+		return math.max(math.min(max, x), min)
 	end
 
 	local util = Feint.Core.Util

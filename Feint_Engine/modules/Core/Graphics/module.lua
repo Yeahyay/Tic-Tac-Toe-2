@@ -63,7 +63,7 @@ function graphics:load(isThread)
 		love.window.updateMode(self.ScreenSize.x, self.ScreenSize.y, {
 			fullscreen = false,
 			fullscreentype = "desktop",
-			vsync = false,
+			vsync = true,
 			msaa = 0,
 			resizable = true,
 			borderless = false,
@@ -119,7 +119,7 @@ function graphics:load(isThread)
 		-- end
 	end
 
-	function self:draw()
+	function self:draw(Game)
 		love.graphics.setCanvas(self.canvas)
 		love.graphics.clear()
 
@@ -132,8 +132,11 @@ function graphics:load(isThread)
 		love.graphics.setColor(1, 1, 1, 1)
 
 		love.graphics.push()
-			love.graphics.scale(self.RenderScale.x, self.RenderScale.y)
-			love.graphics.translate(self.RenderSize.x / 2, self.RenderSize.y / 2)
+			love.graphics.scale(self.RenderScale.x, -self.RenderScale.y)
+			love.graphics.translate(self.RenderSize.x / 2, -self.RenderSize.y / 2)
+
+			love.graphics.scale(Game.Camera.Zoom, Game.Camera.Zoom)
+			love.graphics.translate((-Game.Camera.Position):split())
 			-- love.graphics.setWireframe(true)
 
 			for k, textureAsset in pairs(TEXTURE_ASSETS) do
@@ -145,6 +148,8 @@ function graphics:load(isThread)
 				-- 	love.graphics.draw(batch, 0, 0, 0, 1, 1)
 				-- end
 			end
+
+			Game:draw()
 
 		love.graphics.pop()
 		love.graphics.setCanvas()

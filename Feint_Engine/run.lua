@@ -33,7 +33,7 @@ local DEFAULT_FONT_HEIGHT
 
 -- direct requires (BAD BUT EASY)
 local ffi = require("ffi")
-local fpsGraph = require("Feint_Engine.lib.FPSGraph")
+local Game = require("src/game")
 
 -- luacheck: pop ignore
 
@@ -71,9 +71,8 @@ function love.resize(x, y)
 	-- Graphics:draw()
 end
 
-local boards = {}
 function love.load()
-	Time.framerate = 60 -- framerate cap
+	Time.framerate = -1 -- 60 -- framerate cap
 	Time.rate = 1 / 60 -- update dt
 	Time.sleep = 0.001 -- don't toast the CPU
 	Time:setSpeed(1) -- default game speed
@@ -92,38 +91,10 @@ function love.load()
 	DEFAULT_FONT_HEIGHT = DEFAULT_FONT:getHeight()
 	LoveGraphics.setFont(DEFAULT_FONT)
 
-	-- fpsGraph1 = fpsGraph.createGraph(350, DEFAULT_FONT_HEIGHT / 2 * 8)
-	-- memGraph1 = fpsGraph.createGraph(350, DEFAULT_FONT_HEIGHT / 2 *10)
-
-	Feint.ECS:init()
-
-	local Board = require("src/board")
-	boards[1] = Board:new()
-
-	-- Threads
-	for i = 1, 0, 1 do
-		Feint.Core.Thread:newWorker(i)
-	end
-	Feint.Core.Thread:startWorkers()
-
-	-- love.timer.sleep(0.1)
-	-- for i = 1, Feint.Core.Thread:getNumWorkers(), 1 do
-	-- 	Log:logln("STARTING THREAD %d", i)
-	-- 	Feint.Core.Thread:startWorker(i)
-	-- end
-	for i = 1, Feint.Core.Thread:getNumWorkers(), 1 do
-		local channel = love.thread.getChannel("thread_data_"..i)
-		Log:logln("WAITING FOR THREAD %d", i)
-
-		local status
-		status = channel:demand(1)
-
-		Log:logln("RECIEVED FROM THREAD %d: %s", i, status)
-		-- Log:logln("DONE WAITING FOR THREAD %d", i)
-	end
+	Game:init()
 
 	-- Immediate Mode GUI
-	Graphics.UI.Immediate.Initialize()
+	-- Graphics.UI.Immediate.Initialize()
 end
 
 
@@ -134,18 +105,13 @@ function love.update(dt)
 
 	local startTime = getTime()
 
-	Feint.Core.Thread:update()
+	-- Feint.Core.Thread:update()
 
-	for k, v in pairs(boards) do
-		v:update()
-	end
+	Game:update(dt)
 
-	-- Graphics.processAddQueue()	-- process all pending draw queue insertions
-	-- Graphics.processQueue()		-- process all draw data updates
-
-	if Graphics.UI.Immediate then
-		Graphics.UI.Immediate.Update(dt)
-	end
+	-- if Graphics.UI.Immediate then
+	-- 	Graphics.UI.Immediate.Update(dt)
+	-- end
 
 	local endTime = getTime()
 
@@ -290,7 +256,7 @@ function love.draw(dt)
 	-- 	-- LoveGraphics.setWireframe(true)
 	Graphics:updateInterpolate(Time.accum)
 	-- 	-- Graphics.processQueue()
-	Graphics:draw()
+	Graphics:draw(Game)
 	-- 	-- LoveGraphics.setWireframe(false)
 	-- LoveGraphics.pop()
 	-- LoveGraphics.setCanvas()
@@ -300,14 +266,12 @@ function love.draw(dt)
 	-- LoveGraphics.draw(canvas, 0, 0, 0, sx, sy, 0, 0)
 	-- -- LoveGraphics.draw(canvas, 50, 50, 0, 1, 1, 0, 0)
 
-	Graphics.UI.Immediate.Draw(Time.G_RENDER_DT)
+	-- Graphics.UI.Immediate.Draw(Time.G_RENDER_DT)
 
 	-- fpsGraph.drawGraphs(2, {fpsGraph1, memGraph1})
 	-- LoveGraphics.setFont(DEFAULT_FONT)
 
-	for k, v in pairs(boards) do
-		v:draw()
-	end
+	-- Game:draw()
 
 	debugDraw()
 
